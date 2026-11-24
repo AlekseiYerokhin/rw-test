@@ -1,0 +1,22 @@
+# --- Секреты: реальные пароли не коммитим (NFR-SEC-6) ---
+backend/src/main/resources/application.properties
+
+# --- Сборка Java/Maven ---
+target/
+*.class
+*.war
+*.jar
+
+# --- Сборка frontend ---
+node_modules/
+frontend/dist/
+.angular/
+
+# --- IDE ---
+.idea/
+.vscode/
+*.iml
+
+# --- ОС ---
+.DS_Store
+Thumbs.db

@@ -1,0 +1,24 @@
+# --- База данных ---
+# Скопируйте этот файл в application.properties и подставьте свои значения.
+# Пароль задаётся переменной окружения APP_DB_PASSWORD (не коммитится!).
+spring.datasource.url=jdbc:postgresql://localhost:5432/appdb
+spring.datasource.username=appuser
+spring.datasource.password=${APP_DB_PASSWORD:}
+
+# --- JPA: схему создаёт ТОЛЬКО schema.sql, Hibernate лишь проверяет соответствие ---
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.open-in-view=false
+
+# --- JSON/кодировка: UTF-8 везде (кириллица!) ---
+server.servlet.encoding.charset=UTF-8
+server.servlet.encoding.enabled=true
+server.servlet.encoding.force=true
+
+# --- Сессия ---
+server.servlet.session.timeout=30m
+server.servlet.session.cookie.http-only=true
+server.servlet.session.cookie.same-site=lax
+
+# --- Загрузка файлов (картинки до 5 МБ) ---
+spring.servlet.multipart.max-file-size=5MB
+spring.servlet.multipart.max-request-size=6MB
