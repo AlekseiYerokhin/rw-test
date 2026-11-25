@@ -72,6 +72,14 @@ public class GlobalExceptionHandler {
                         Map.of("image", "Файл превышает максимальный размер 5 МБ")));
     }
 
+    /** Неподдерживаемый Content-Type (например, POST не multipart) — 415, а не 500. */
+    @ExceptionHandler(org.springframework.web.HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ApiError> unsupportedMediaType(
+            org.springframework.web.HttpMediaTypeNotSupportedException ex) {
+        return ResponseEntity.status(415)
+                .body(ApiError.of(415, "Неподдерживаемый тип содержимого"));
+    }
+
     /** Всё остальное — 500, детали только в лог (не наружу!). */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> internal(Exception ex) {
