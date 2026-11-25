@@ -3,49 +3,26 @@ package by.bch.records.dto;
 import java.time.LocalDate;
 
 /**
- * Лёгкая строка списка (проекция JPQL, см. RecordRepository.findAllRows).
+ * Лёгкая строка списка (проекция, см. RecordRepository.findAllRows).
  * Поля image нет — список не загружает байты картинок (NFR-PERF-3).
+ *
+ * ВАЖНО: это interface-проекция (алиасы в JPQL), а не класс с конструктором,
+ * как в черновике ТЗ В.6. Причина: Hibernate 5.6 падает с ClassCastException
+ * (SqlNode -> FromReferenceNode) на SELECT new, если полное имя класса
+ * содержит ключевое слово JPQL — а by.bch.records... начинается с 'by'.
+ * Проверено экспериментально на #7; для сервиса интерфейс геттеров тот же.
  */
-public class RecordRow {
+public interface RecordRow {
 
-    private final Long id;
-    private final Long numValue;
-    private final String textValue;
-    private final LocalDate dateValue;
-    private final String imageName;
-    private final String imageMime;
+    Long getId();
 
-    public RecordRow(Long id, Long numValue, String textValue,
-                     LocalDate dateValue, String imageName, String imageMime) {
-        this.id = id;
-        this.numValue = numValue;
-        this.textValue = textValue;
-        this.dateValue = dateValue;
-        this.imageName = imageName;
-        this.imageMime = imageMime;
-    }
+    Long getNumValue();
 
-    public Long getId() {
-        return id;
-    }
+    String getTextValue();
 
-    public Long getNumValue() {
-        return numValue;
-    }
+    LocalDate getDateValue();
 
-    public String getTextValue() {
-        return textValue;
-    }
+    String getImageName();
 
-    public LocalDate getDateValue() {
-        return dateValue;
-    }
-
-    public String getImageName() {
-        return imageName;
-    }
-
-    public String getImageMime() {
-        return imageMime;
-    }
+    String getImageMime();
 }
