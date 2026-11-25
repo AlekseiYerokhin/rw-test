@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend — mvn clean package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+          cache: maven
+
+      - name: Сборка WAR
+        working-directory: backend
+        run: mvn -B clean package
+
+      - name: Проверка артефакта
+        run: test -f backend/target/app.war && echo "app.war собран"
+
+      - name: Публикация app.war
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-war
+          path: backend/target/app.war
+          retention-days: 7
+
+  db:
+    name: DB — schema.sql на чистом PostgreSQL
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: psql клиент
+        run: command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client)
+
+      - name: Создание БД appdb (как в комментарии schema.sql)
+        run: psql -h localhost -U postgres -c "CREATE DATABASE appdb WITH ENCODING 'UTF8' TEMPLATE template0;"
+
+      - name: Выполнение schema.sql (критерий приёмки №1)
+        run: psql -h localhost -U postgres -d appdb -v ON_ERROR_STOP=1 -f db/schema.sql
+
+      - name: Проверки содержимого
+        shell: bash
+        run: |
+          set -euo pipefail
+          q() { psql -h localhost -U postgres -d appdb -tA -c "$1"; }
+
+          [ "$(q "SHOW SERVER_ENCODING")" = "UTF8" ] || { echo "FAIL: кодировка не UTF8"; exit 1; }
+          [ "$(q "SELECT count(*) FROM record")" = "18" ] || { echo "FAIL: не 18 записей"; exit 1; }
+          [ "$(q "SELECT count(*) FROM record WHERE image IS NOT NULL")" = "3" ] || { echo "FAIL: не 3 картинки"; exit 1; }
+          [ "$(q "SELECT text_value FROM record WHERE id=1")" = "Привет, БЧ! Ёжик" ] || { echo "FAIL: кириллица искажена"; exit 1; }
+          [ "$(q "SELECT encode(substring(image from 1 for 4),'hex') FROM record WHERE image IS NOT NULL LIMIT 1")" = "89504e47" ] || { echo "FAIL: битый PNG"; exit 1; }
+
+          HASH="$(q "SELECT password_hash FROM app_user WHERE login='admin'")"
+          case "$HASH" in
+            \$2a\$10\$*) : ;;
+            *) echo "FAIL: пароль admin не BCrypt"; exit 1 ;;
+          esac
+
+          echo "Все проверки schema.sql прошли: UTF8, 18 записей, 3 картинки, кириллица, PNG, BCrypt"
