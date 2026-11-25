@@ -12,6 +12,7 @@ import { RecordsService } from '../../services/records.service';
 import { NotificationService } from '../../services/notification.service';
 import { RecordDto } from '../../models/record.dto';
 import { DeleteConfirmDialogComponent } from './delete-confirm-dialog.component';
+import { ImageViewDialogComponent } from './image-view-dialog.component';
 
 /** Страница списка записей (ТЗ 7.2, FR-LIST-1..8). Серверная пагинация и сортировка. */
 @Component({
@@ -76,6 +77,11 @@ export class RecordsComponent implements OnInit {
 
   addRecord(): void {
     void this.router.navigate(['/records/new']);
+  }
+
+  /** Полноразмерный просмотр картинки по клику на миниатюру (FR-LIST-4). */
+  viewImage(record: RecordDto): void {
+    this.dialog.open(ImageViewDialogComponent, { data: record });
   }
 
   editRecord(record: RecordDto): void {

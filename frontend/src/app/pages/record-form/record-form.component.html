@@ -37,6 +37,9 @@
           <div class="file-row">
             <button mat-stroked-button type="button" (click)="fileInput.click()">Выбрать файл</button>
             <span class="file-name">{{ fileName() || 'Файл не выбран' }}</span>
+            @if (selectedFile()) {
+              <button mat-button type="button" (click)="resetFile()">Сбросить выбор</button>
+            }
           </div>
           <input #fileInput type="file" hidden
                  accept="image/jpeg,image/png,image/gif"

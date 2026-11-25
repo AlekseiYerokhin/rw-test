@@ -1,4 +1,6 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, LOCALE_ID, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeRu from '@angular/common/locales/ru';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -9,9 +11,13 @@ import { routes } from './app.routes';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { loadingInterceptor } from './interceptors/loading.interceptor';
 
+registerLocaleData(localeRu);
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    // Русская локаль для pipe'ов и компонентов (NFR-LOC-3)
+    { provide: LOCALE_ID, useValue: 'ru' },
     provideRouter(routes),
     provideHttpClient(withInterceptors([loadingInterceptor, authInterceptor])),
     provideAnimationsAsync(),
