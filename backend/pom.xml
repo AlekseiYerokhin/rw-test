@@ -74,7 +74,8 @@
                 <version>1.15.1</version>
                 <configuration>
                     <workingDirectory>${project.basedir}/../frontend</workingDirectory>
-                    <installDirectory>node</installDirectory>
+                    <!-- Node ставится в frontend/node (в .gitignore), а не в backend -->
+                    <installDirectory>${project.basedir}/../frontend/node</installDirectory>
                     <!-- Node 24 LTS: требование engines Angular 22 (^24.15.0) -->
                     <nodeVersion>v24.22.3</nodeVersion>
                 </configuration>

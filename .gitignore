@@ -21,3 +21,4 @@ frontend/node/   # Node, скачанный frontend-maven-plugin
 # --- ОС ---
 .DS_Store
 Thumbs.db
+backend/node/
