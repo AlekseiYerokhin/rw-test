@@ -39,7 +39,10 @@ export class RecordFormComponent implements OnInit {
       nonNullable: true,
       validators: [Validators.required, Validators.maxLength(500)],
     }),
-    dateValue: new FormControl<Date | null>(null, Validators.required),
+    dateValue: new FormControl<Date | null>(null, [
+      Validators.required,
+      dateRangeValidator,
+    ]),
   });
 
   readonly selectedFile = signal<File | null>(null);
@@ -56,10 +59,10 @@ export class RecordFormComponent implements OnInit {
     initialValue: this.form.status,
   });
 
-  /** Картинка обязательна только при создании (FR-CREATE-3, FR-UPDATE-4). */
+  /** Картинка обязательна только при создании; ошибка файла блокирует сохранение (FR-VALID-5). */
   readonly canSave = computed(() => {
     const fileOk = this.isEdit || this.selectedFile() !== null;
-    return this.formStatus() === 'VALID' && fileOk && !this.submitting();
+    return this.formStatus() === 'VALID' && fileOk && !this.imageError() && !this.submitting();
   });
 
   constructor() {
@@ -92,15 +95,31 @@ export class RecordFormComponent implements OnInit {
   onFileChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
-    this.selectedFile.set(file);
-    this.fileName.set(file?.name ?? '');
-    this.imageError.set('');
+    this.selectedFile.set(null);
     this.previewUrl.set(null);
+    this.imageError.set('');
+    this.fileName.set(file?.name ?? '');
+
     if (file) {
+      // Клиентская валидация: тип (MIME + расширение) и размер <= 5 МБ (FR-VALID-5)
+      const error = validateImageFile(file);
+      if (error) {
+        this.imageError.set(error);
+        return;
+      }
+      this.selectedFile.set(file);
       const reader = new FileReader();
       reader.onload = () => this.previewUrl.set(reader.result as string);
       reader.readAsDataURL(file);
     }
+  }
+
+  /** Сброс выбранного файла (при редактировании остаётся текущая картинка). */
+  resetFile(): void {
+    this.selectedFile.set(null);
+    this.fileName.set('');
+    this.previewUrl.set(null);
+    this.imageError.set('');
   }
 
   submit(): void {
@@ -165,14 +184,49 @@ export class RecordFormComponent implements OnInit {
     if (control.hasError('server')) {
       return control.getError('server') as string;
     }
+    if (control.hasError('matDatepickerParse')) {
+      return 'Некорректная дата';
+    }
     if (control.hasError('required')) {
       return { numValue: 'Число обязательно', textValue: 'Текст обязателен', dateValue: 'Дата обязательна' }[field];
     }
     if (control.hasError('maxlength')) {
       return 'Текст не должен превышать 500 символов';
     }
+    if (control.hasError('dateRange')) {
+      return control.getError('dateRange') as string;
+    }
     return '';
   }
+}
+
+/** Год 1900–2100 (FR-VALID-4). */
+function dateRangeValidator(control: { value: unknown }): Record<string, unknown> | null {
+  const value = control.value;
+  if (!(value instanceof Date) || isNaN(value.getTime())) {
+    return null;   // непарсируемый ввод обрабатывает matDatepickerParse/required
+  }
+  const year = value.getFullYear();
+  return year < 1900 || year > 2100
+    ? { dateRange: 'Дата должна быть в диапазоне 1900–2100 годов' }
+    : null;
+}
+
+const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/gif'];
+const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif'];
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
+/** Проверка файла на клиенте: тип (MIME + расширение) и размер <= 5 МБ (FR-VALID-5). */
+function validateImageFile(file: File): string | null {
+  const name = file.name.toLowerCase();
+  const extensionOk = ALLOWED_EXTENSIONS.some((ext) => name.endsWith(ext));
+  if (!ALLOWED_MIME.includes(file.type) || !extensionOk) {
+    return 'Допустимы только JPEG, PNG, GIF';
+  }
+  if (file.size > MAX_IMAGE_SIZE) {
+    return 'Файл превышает максимальный размер 5 МБ';
+  }
+  return null;
 }
 
 /** Date (локальная дата из datepicker) -> ISO "yyyy-MM-dd" без сдвига часового пояса. */
