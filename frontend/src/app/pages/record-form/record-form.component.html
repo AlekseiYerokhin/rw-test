@@ -1,0 +1,67 @@
+<div class="form-wrap">
+  <mat-card class="form-card">
+    <mat-card-header>
+      <mat-card-title>{{ isEdit ? 'Редактирование записи №' + recordId : 'Новая запись' }}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Число</mat-label>
+          <input matInput type="number" formControlName="numValue" required />
+          @if (errorText('numValue')) {
+            <mat-error>{{ errorText('numValue') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Текст</mat-label>
+          <textarea matInput formControlName="textValue" rows="4" maxlength="500" required></textarea>
+          @if (errorText('textValue')) {
+            <mat-error>{{ errorText('textValue') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Дата (ДД.ММ.ГГГГ)</mat-label>
+          <input matInput [matDatepicker]="picker" formControlName="dateValue" required />
+          <mat-datepicker-toggle matIconSuffix [for]="picker" />
+          <mat-datepicker #picker />
+          @if (errorText('dateValue')) {
+            <mat-error>{{ errorText('dateValue') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="file-block">
+          <span class="file-label">Картинка{{ isEdit ? '' : ' (обязательна)' }}</span>
+          <div class="file-row">
+            <button mat-stroked-button type="button" (click)="fileInput.click()">Выбрать файл</button>
+            <span class="file-name">{{ fileName() || 'Файл не выбран' }}</span>
+          </div>
+          <input #fileInput type="file" hidden
+                 accept="image/jpeg,image/png,image/gif"
+                 (change)="onFileChange($event)" />
+          @if (imageError()) {
+            <p class="field-error">{{ imageError() }}</p>
+          }
+
+          @if (previewUrl()) {
+            <img class="preview" [src]="previewUrl()" alt="Превью новой картинки" />
+          } @else if (isEdit && hasCurrentImage()) {
+            <div class="current-image">
+              <span class="file-label">Текущая картинка: {{ currentImageName() }}</span>
+              <img class="preview" [src]="recordsService.imageUrl(recordId!)" alt="Текущая картинка" />
+            </div>
+          }
+        </div>
+
+        <div class="buttons">
+          <button mat-flat-button color="primary" type="submit" [disabled]="!canSave()">
+            {{ submitting() ? 'Сохранение…' : 'Сохранить' }}
+          </button>
+          <button mat-button type="button" (click)="cancel()">Отмена</button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

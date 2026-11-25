@@ -1,0 +1,61 @@
+.form-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+}
+
+.form-card {
+  width: 560px;
+  padding: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.file-block {
+  margin: 8px 0 16px;
+}
+
+.file-label {
+  display: block;
+  color: #666;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.file-name {
+  color: #333;
+  font-size: 14px;
+}
+
+.preview {
+  margin-top: 12px;
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  display: block;
+}
+
+.current-image {
+  margin-top: 12px;
+}
+
+.field-error {
+  color: #b00020;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
