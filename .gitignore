@@ -11,6 +11,7 @@ target/
 node_modules/
 frontend/dist/
 .angular/
+frontend/node/   # Node, скачанный frontend-maven-plugin
 
 # --- IDE ---
 .idea/
