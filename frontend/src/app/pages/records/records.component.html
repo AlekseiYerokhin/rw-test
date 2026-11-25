@@ -8,5 +8,73 @@
 </mat-toolbar>
 
 <main class="content">
-  <p>Список записей появится на этапе 5.</p>
+  <div class="actions-bar">
+    <button mat-flat-button color="primary" (click)="addRecord()">Добавить запись</button>
+  </div>
+
+  @if (!loading() && records().length === 0) {
+    <div class="empty-state">
+      <p>Записей пока нет</p>
+      <button mat-flat-button color="primary" (click)="addRecord()">Добавить запись</button>
+    </div>
+  } @else {
+    <table mat-table [dataSource]="records()" class="full-width"
+           matSort [matSortActive]="sortField()" [matSortDirection]="sortDir()"
+           (matSortChange)="onSort($event)">
+
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef>№</th>
+        <td mat-cell *matCellDef="let r">{{ r.id }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="numValue">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Число</th>
+        <td mat-cell *matCellDef="let r">{{ r.numValue }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="textValue">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Текст</th>
+        <td mat-cell *matCellDef="let r">{{ r.textValue }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="dateValue">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Дата</th>
+        <td mat-cell *matCellDef="let r">{{ r.dateValue | date: 'dd.MM.yyyy' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="image">
+        <th mat-header-cell *matHeaderCellDef>Картинка</th>
+        <td mat-cell *matCellDef="let r">
+          @if (r.hasImage) {
+            <img class="thumb" [src]="recordsService.imageUrl(r.id)" [alt]="r.imageName ?? 'Картинка'" />
+          } @else {
+            <span class="no-image">—</span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Действия</th>
+        <td mat-cell *matCellDef="let r">
+          <button mat-icon-button title="Редактировать" (click)="editRecord(r)">
+            <span aria-hidden="true">✎</span>
+          </button>
+          <button mat-icon-button color="warn" title="Удалить" (click)="deleteRecord(r)">
+            <span aria-hidden="true">🗑</span>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+
+    <mat-paginator
+      [length]="totalElements()"
+      [pageIndex]="pageIndex()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="[10, 25, 50]"
+      (page)="onPage($event)"
+      showFirstLastButtons />
+  }
 </main>
