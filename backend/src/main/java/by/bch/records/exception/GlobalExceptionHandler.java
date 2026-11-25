@@ -45,16 +45,31 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> validation(BindException ex) {
         Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
                 .collect(Collectors.toMap(FieldError::getField,
-                        fe -> fe.getDefaultMessage(), (a, b) -> a));
+                        fe -> "typeMismatch".equals(fe.getCode())
+                                ? typeMismatchMessage(fe.getField())
+                                : fe.getDefaultMessage(), (a, b) -> a));
         return ResponseEntity.badRequest()
                 .body(ApiError.of(400, "Ошибка валидации", fieldErrors));
     }
 
-    /** Превышен multipart-лимит (5 МБ). */
+    /** Ошибки конвертации (дата/число в неправильном формате) — тоже на русском (FR-VALID-6). */
+    private static String typeMismatchMessage(String field) {
+        switch (field) {
+            case "dateValue":
+                return "Некорректная дата";
+            case "numValue":
+                return "Число должно быть целым";
+            default:
+                return "Некорректное значение";
+        }
+    }
+
+    /** Превышен multipart-лимит (5 МБ). fieldErrors.image — чтобы форма подсветила поле (FR-CREATE-6). */
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ApiError> tooLarge(MaxUploadSizeExceededException ex) {
         return ResponseEntity.badRequest()
-                .body(ApiError.of(400, "Файл превышает максимальный размер 5 МБ"));
+                .body(ApiError.of(400, "Файл превышает максимальный размер 5 МБ",
+                        Map.of("image", "Файл превышает максимальный размер 5 МБ")));
     }
 
     /** Всё остальное — 500, детали только в лог (не наружу!). */
