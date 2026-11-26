@@ -38,17 +38,26 @@ SPA на Angular + Java-бэкенд с REST API, упакованные в ед
 
 ## 1. Подготовка БД
 
-Выполнить от суперпользователя PostgreSQL:
+Команды выполняются от суперпользователя PostgreSQL (`postgres`). Способ подключения зависит от настроек сервера.
+
+**Вариант A — через TCP с паролем:**
 
 ```bash
-psql -c "CREATE USER appuser WITH PASSWORD 'ваш_пароль';"
-psql -c "CREATE DATABASE appdb WITH ENCODING 'UTF8' TEMPLATE template0 OWNER appuser;"
+psql -h localhost -U postgres -c "CREATE USER appuser WITH PASSWORD 'ваш_пароль';"
+psql -h localhost -U postgres -c "CREATE DATABASE appdb WITH ENCODING 'UTF8' TEMPLATE template0 OWNER appuser;"
+```
+
+**Вариант B — peer-аутентификация (Linux):**
+
+```bash
+sudo -u postgres psql -c "CREATE USER appuser WITH PASSWORD 'ваш_пароль';"
+sudo -u postgres psql -c "CREATE DATABASE appdb WITH ENCODING 'UTF8' TEMPLATE template0 OWNER appuser;"
 ```
 
 Применить схему и начальные данные (таблицы `app_user`/`record`, пользователь `admin`, 18 тестовых записей):
 
 ```bash
-psql -U appuser -d appdb -f db/schema.sql
+PGPASSWORD='ваш_пароль' psql -h localhost -U appuser -d appdb -f db/schema.sql
 ```
 
 ## 2. Настройка подключения
