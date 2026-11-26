@@ -19,10 +19,11 @@ SPA на Angular + Java-бэкенд с REST API, упакованные в ед
 ## Структура репозитория
 
 ```
-├── backend/    Maven-проект (Spring Boot, WAR), пакет by.bch.records
-├── frontend/   Angular SPA (Angular 22)
-├── db/         schema.sql — создание объектов БД и начальные данные
-└── docs/       ТЗ
+├── backend/           Maven-проект (Spring Boot, WAR), пакет by.bch.records
+├── frontend/          Angular SPA (Angular 22)
+├── db/                schema.sql — создание объектов БД и начальные данные
+├── docker-compose.yml PostgreSQL + приложение одной командой
+└── docs/              ТЗ
 ```
 
 ## Требования
@@ -35,6 +36,7 @@ SPA на Angular + Java-бэкенд с REST API, упакованные в ед
 | Apache Tomcat | 8.5+/9 | внешний контейнер |
 | Node.js | **не требуется для сборки** | `frontend-maven-plugin` сам скачает Node 24.22.3 |
 | Node.js (для dev-режима) | 24 LTS (≥ 24.15.0) | требование Angular 22 |
+| Docker (опционально) | 20+ с Compose v2 | запуск стека без локальной установки JDK/Maven/Tomcat/PostgreSQL |
 
 ## 1. Подготовка БД
 
@@ -132,6 +134,34 @@ cd frontend && npm ci && npm start
 ```
 
 > Нюанс: если backend для dev-режима развёрнут на **внешнем** Tomcat в контексте `/app`, кука `JSESSIONID` получит `Path=/app` и не будет отправляться dev-сервером с корня. Для dev используйте embedded-режим (`mvn spring-boot:run`) или разверните WAR как `ROOT.war`.
+
+## 7. Запуск в Docker
+
+Весь стек (PostgreSQL + Tomcat с приложением) поднимается одной командой:
+
+```bash
+docker compose up --build -d
+```
+
+- Приложение: **http://localhost:8080/**
+- БД для отладки: `localhost:5433` (`appuser` / пароль из `DB_PASSWORD`, по умолчанию `secret`)
+
+При первом старте PostgreSQL автоматически применяет `db/schema.sql` (таблицы, `admin/admin123`, 18 тестовых записей); данные хранятся в volume `pgdata`.
+
+Пароль по умолчанию можно переопределить:
+
+```bash
+DB_PASSWORD='свой_пароль' docker compose up --build -d
+```
+
+Остановка и полная очистка:
+
+```bash
+docker compose down       # остановить
+docker compose down -v    # остановить и удалить БД (при следующем старте schema.sql применится заново)
+```
+
+Образ собирается в два этапа: `maven:3.9-eclipse-temurin-11` собирает WAR (включая Angular), runtime — `tomcat:9.0-jdk11-temurin` с `ROOT.war`.
 
 ## Учётные данные
 
