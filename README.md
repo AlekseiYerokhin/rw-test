@@ -144,7 +144,7 @@ docker compose up --build -d
 ```
 
 - Приложение: **http://localhost:8080/**
-- БД для отладки: `localhost:5433` (`appuser` / пароль из `DB_PASSWORD`, по умолчанию `secret`)
+- БД для отладки: `localhost:5438` (`appuser` / пароль из `DB_PASSWORD`, по умолчанию `secret`)
 
 При первом старте PostgreSQL автоматически применяет `db/schema.sql` (таблицы, `admin/admin123`, 18 тестовых записей); данные хранятся в volume `pgdata`.
 
