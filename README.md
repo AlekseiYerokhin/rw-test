@@ -6,6 +6,7 @@ SPA на Angular + Java-бэкенд с REST API, упакованные в ед
 [![CI](https://github.com/AlekseiYerokhin/rw-test/actions/workflows/ci.yml/badge.svg)](https://github.com/AlekseiYerokhin/rw-test/actions/workflows/ci.yml)
 
 Полный текст технического задания: [docs/TZ.md](docs/TZ.md).
+Готовая сборка — в [Releases](https://github.com/AlekseiYerokhin/rw-test/releases): `app.war` для Tomcat и `schema.sql`.
 
 ## Стек
 
