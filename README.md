@@ -135,7 +135,7 @@ cd frontend && npm ci && npm start
 - **Аутентификация** — HttpSession (`HttpOnly`, `SameSite=Lax`, таймаут 30 мин), BCrypt; без JWT
 - **CSRF-lite** — мутирующие запросы требуют `X-Requested-With: XMLHttpRequest` (frontend ставит автоматически)
 - **SPA-fallback** — не-API пути отдают `index.html` (F5 и прямые ссылки работают)
-- **`RecordRow`** — interface-проекция вместо `SELECT new` из черновика ТЗ: Hibernate 5.6 не парсит конструкторные выражения JPQL с FQN, начинающимся с ключевого слова `by` (детали — в коде класса и PR #33)
+- **`RecordRow`** — interface-проекция с алиасами JPQL вместо конструкторного выражения: Hibernate 5.6 не разбирает FQN, начинающиеся с ключевого слова `by` (`by.bch…`), в `SELECT new` — падает с `ClassCastException`
 - **Angular 22** — актуальная стабильная версия (ТЗ требует 17+); требует Node ^22.22.3 || ^24.15.0 || >=26 — в сборке фиксирован Node 24.22.3
 
 ## Проверка
