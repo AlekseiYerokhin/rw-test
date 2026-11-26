@@ -146,6 +146,9 @@ export class RecordFormComponent implements OnInit {
     request.subscribe({
       next: () => {
         this.notify.success(this.isEdit ? 'Запись обновлена' : 'Запись успешно добавлена');
+        if (this.isEdit) {
+          this.recordsService.bumpImage(this.recordId!);   // сброс кэша картинки
+        }
         void this.router.navigate(['/records']);
       },
       error: (err: { status?: number; error?: ApiError }) => {
