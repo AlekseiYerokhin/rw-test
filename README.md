@@ -38,17 +38,26 @@ SPA на Angular + Java-бэкенд с REST API, упакованные в ед
 
 ## 1. Подготовка БД
 
-Выполнить от суперпользователя PostgreSQL:
+Команды выполняются от суперпользователя PostgreSQL (`postgres`). Способ подключения зависит от настроек сервера.
+
+**Вариант A — через TCP с паролем:**
 
 ```bash
-psql -c "CREATE USER appuser WITH PASSWORD 'ваш_пароль';"
-psql -c "CREATE DATABASE appdb WITH ENCODING 'UTF8' TEMPLATE template0 OWNER appuser;"
+psql -h localhost -U postgres -c "CREATE USER appuser WITH PASSWORD 'ваш_пароль';"
+psql -h localhost -U postgres -c "CREATE DATABASE appdb WITH ENCODING 'UTF8' TEMPLATE template0 OWNER appuser;"
+```
+
+**Вариант B — peer-аутентификация (Linux):**
+
+```bash
+sudo -u postgres psql -c "CREATE USER appuser WITH PASSWORD 'ваш_пароль';"
+sudo -u postgres psql -c "CREATE DATABASE appdb WITH ENCODING 'UTF8' TEMPLATE template0 OWNER appuser;"
 ```
 
 Применить схему и начальные данные (таблицы `app_user`/`record`, пользователь `admin`, 18 тестовых записей):
 
 ```bash
-psql -U appuser -d appdb -f db/schema.sql
+PGPASSWORD='ваш_пароль' psql -h localhost -U appuser -d appdb -f db/schema.sql
 ```
 
 ## 2. Настройка подключения
@@ -135,7 +144,7 @@ cd frontend && npm ci && npm start
 - **Аутентификация** — HttpSession (`HttpOnly`, `SameSite=Lax`, таймаут 30 мин), BCrypt; без JWT
 - **CSRF-lite** — мутирующие запросы требуют `X-Requested-With: XMLHttpRequest` (frontend ставит автоматически)
 - **SPA-fallback** — не-API пути отдают `index.html` (F5 и прямые ссылки работают)
-- **`RecordRow`** — interface-проекция вместо `SELECT new` из черновика ТЗ: Hibernate 5.6 не парсит конструкторные выражения JPQL с FQN, начинающимся с ключевого слова `by` (детали — в коде класса и PR #33)
+- **`RecordRow`** — interface-проекция с алиасами JPQL вместо конструкторного выражения: Hibernate 5.6 не разбирает FQN, начинающиеся с ключевого слова `by` (`by.bch…`), в `SELECT new` — падает с `ClassCastException`
 - **Angular 22** — актуальная стабильная версия (ТЗ требует 17+); требует Node ^22.22.3 || ^24.15.0 || >=26 — в сборке фиксирован Node 24.22.3
 
 ## Проверка
@@ -143,19 +152,3 @@ cd frontend && npm ci && npm start
 - `cd backend && mvn test` — юнит-тесты сервисов (18 тестов)
 - `cd frontend && npm test` — тесты Angular (vitest)
 - CI (GitHub Actions): сборка WAR + прогон `schema.sql` на чистом PostgreSQL 16 с проверками данных
-
-## Чек-лист приёмки (ТЗ раздел 9)
-
-1. `schema.sql` выполняется без ошибок, создаёт таблицы и тестовые данные
-2. `app.war` разворачивается в Tomcat; SPA открывается, F5 на `/records` не даёт 404
-3. Без входа: список недоступен (редирект), API → 401
-4. Вход `admin/admin123`; неверный пароль — ошибка; вход переживает F5
-5. Список с серверной пагинацией и сортировкой
-6. Запись добавляется (с картинкой) и появляется в списке
-7. Редактирование — с заменой картинки и без
-8. Удаление после диалога подтверждения
-9. Число, текст, дата, картинка (миниатюра + полный размер) отображаются
-10. Данные переживают перезапуск Tomcat
-11. «Привет, БЧ! Ёжик» без искажений во всех операциях
-12. Даты на UI — ДД.ММ.ГГГГ; несуществующая дата отклоняется
-13. Изменения конфигурации описаны в README
